@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selasar ITS — Tugas 2 Grafika Komputer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="kanvas" tabindex="0"></canvas>
+
+<!-- Panel kontrol melayang di atas kanvas -->
+<div id="panel" class="panel">
+  <div class="kepala">
+    <strong>Selasar ITS</strong>
+    <button id="btnPanel" title="Sembunyikan panel (H)">–</button>
+  </div>
+  <div id="isiPanel">
+    <div class="baris">
+      <span class="judul">Kamera</span>
+      <button data-mode="orbit" title="1">Orbit</button>
+      <button data-mode="jalan" title="2">Jalan</button>
+      <button data-mode="bebas" title="3">Bebas</button>
+    </div>
+    <div class="baris">
+      <span class="judul">Waktu</span>
+      <input type="range" id="jam" min="0" max="24" step="0.05" value="11">
+      <output id="jamLabel">11.00</output>
+    </div>
+    <div class="baris">
+      <span class="judul"></span>
+      <button data-jam="7">Pagi</button>
+      <button data-jam="11">Siang</button>
+      <button data-jam="17.6">Senja</button>
+      <button data-jam="21">Malam</button>
+    </div>
+    <div class="baris cek">
+      <label><input type="checkbox" id="cbSiklus"> Siklus otomatis</label>
+      <label><input type="checkbox" id="cbAnimasi"> Animasi</label>
+      <label><input type="checkbox" id="cbBayangan"> Bayangan</label>
+      <label><input type="checkbox" id="cbTekstur"> Tekstur</label>
+      <label><input type="checkbox" id="cbLampu"> Lampu selalu menyala</label>
+    </div>
+    <p class="bantuan">
+      Seret: lihat sekeliling · Scroll: zoom / maju<br>
+      WASD / panah: gerak · Q/E: turun/naik · Shift: cepat<br>
+      1/2/3: mode kamera · H: sembunyikan panel
+    </p>
+  </div>
+</div>
+
+<div id="fps" class="fps"></div>
+
+<script src="js/matriks.js"></script>
+<script src="js/geometri.js"></script>
+<script src="js/tekstur.js"></script>
+<script src="js/shader.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
