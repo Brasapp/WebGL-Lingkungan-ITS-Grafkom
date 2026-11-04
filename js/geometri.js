@@ -98,6 +98,31 @@ const Geo = {
     return { P, N, U, I };
   },
 
+  // Prisma segitiga (pengisi pelana atap): alas di y=0 selebar z -0.5..0.5,
+  // puncak di (y=1, z=0), memanjang sepanjang sumbu X (-0.5..0.5).
+  prism() {
+    const P = [], N = [], U = [], I = [];
+    const quad = (a, b, c, d, n) => {
+      const base = P.length / 3;
+      for (const p of [a, b, c, d]) { P.push(...p); N.push(...n); }
+      U.push(0, 0, 1, 0, 1, 1, 0, 1);
+      I.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    };
+    const tri = (a, b, c, n) => {
+      const base = P.length / 3;
+      for (const p of [a, b, c]) { P.push(...p); N.push(...n); }
+      U.push(0, 0, 1, 0, 0.5, 1);
+      I.push(base, base + 1, base + 2);
+    };
+    const s = V3.normalize([0, 0.5, 1]);                       // normal sisi miring
+    quad([-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 1, 0], [-0.5, 1, 0], [0, s[1], s[2]]);
+    quad([0.5, 0, -0.5], [-0.5, 0, -0.5], [-0.5, 1, 0], [0.5, 1, 0], [0, s[1], -s[2]]);
+    quad([-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 0, 0.5], [-0.5, 0, 0.5], [0, -1, 0]);
+    tri([0.5, 0, 0.5], [0.5, 0, -0.5], [0.5, 1, 0], [1, 0, 0]);
+    tri([-0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 1, 0], [-1, 0, 0]);
+    return { P, N, U, I };
+  },
+
   // Bidang datar XZ menghadap +Y
   plane(w, d, tu = 1, tv = 1) {
     const P = [-w / 2, 0, d / 2, w / 2, 0, d / 2, w / 2, 0, -d / 2, -w / 2, 0, -d / 2];
@@ -127,13 +152,16 @@ const Geo = {
     return { P, N, U, I };
   },
 
-  // Pita jalan mengikuti lintasan tertutup (array titik [x,z]) di atas tanah
-  pathStrip(points, width, tile = 1) {
+  // Pita jalan mengikuti lintasan (array titik [x,z]) di atas tanah.
+  // tertutup = true -> ujung bertemu pangkal (loop); false -> jalan biasa dengan dua ujung.
+  pathStrip(points, width, tile = 1, tertutup = true) {
     const P = [], N = [], U = [], I = [];
     let dist = 0;
     const n = points.length;
-    for (let i = 0; i <= n; i++) {
-      const p = points[i % n], q = points[(i + 1) % n], o = points[(i - 1 + n) % n];
+    const titik = (i) => tertutup ? points[(i + n) % n] : points[clamp(i, 0, n - 1)];
+    const akhir = tertutup ? n : n - 1;
+    for (let i = 0; i <= akhir; i++) {
+      const p = titik(i), q = titik(i + 1), o = titik(i - 1);
       if (i > 0) dist += Math.hypot(p[0] - o[0], p[1] - o[1]);
       const t = V3.normalize([q[0] - o[0], 0, q[1] - o[1]]);
       const nx = -t[2] * width / 2, nz = t[0] * width / 2;
@@ -141,7 +169,7 @@ const Geo = {
       N.push(0, 1, 0, 0, 1, 0);
       U.push(0, dist / tile, width / tile, dist / tile);
     }
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < akhir; i++) {
       const a = i * 2;
       I.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
     }

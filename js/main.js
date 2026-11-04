@@ -42,8 +42,8 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, smT
 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, smDepth);
 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-// Area yang dicakup shadow map (selasar + parkir + sekitarnya)
-const AREA_BAYANGAN = { min: [-22, 0, -74], max: [30, 14, 8] };
+// Area yang dicakup shadow map (selasar + parkir + sisi gedung di sekitarnya)
+const AREA_BAYANGAN = { min: [-20, 0, -62], max: [28, 10, 10] };
 
 function hitungLightVP(dir) {
   const c = V3.scale(V3.add(AREA_BAYANGAN.min, AREA_BAYANGAN.max), 0.5);
@@ -83,7 +83,7 @@ function updateDunia(dt) {
 
 // =====================================================================
 //  OPTIMASI: semua part statis (tidak beranimasi) digabung per material
-//  menjadi beberapa mesh besar -> ±2.350 part menjadi ±250 draw call.
+//  menjadi beberapa mesh besar -> ±1.670 part menjadi ±320 draw call.
 //  Struktur hierarki tetap utuh (dipakai untuk animasi hierarkis).
 // =====================================================================
 function gabungStatis() {
@@ -128,14 +128,15 @@ let jumlahPart = 0; scene.root.walk((n) => { if (n.mesh) jumlahPart++; });
 // =====================================================================
 function suasana(jam) {
   const a = (jam - 6) / 12 * Math.PI;                 // 06.00 terbit, 18.00 terbenam
-  const sun = V3.normalize([Math.cos(a), Math.sin(a), -0.38]);
+  // timur = -z dunia (arah selasar menuju Gedung ROBOCON), sedikit condong ke selatan (+x)
+  const sun = V3.normalize([0.3, Math.sin(a), -Math.cos(a)]);
   const e = sun[1];                                    // ketinggian matahari
   const siang = smoothstep(0.0, 0.3, e);
   const malam = 1 - smoothstep(-0.18, 0.02, e);
   const zenith = V3.lerp(V3.lerp([0.22, 0.3, 0.52], [0.3, 0.53, 0.86], siang), [0.012, 0.018, 0.045], malam);
   const horizon = V3.lerp(V3.lerp([0.98, 0.6, 0.36], [0.72, 0.83, 0.95], siang), [0.04, 0.06, 0.11], malam);
   const warnaMatahari = V3.scale(V3.lerp([1.0, 0.5, 0.25], [1.0, 0.95, 0.86], smoothstep(0.02, 0.35, e)), smoothstep(-0.02, 0.1, e) * 0.95);
-  const moon = V3.normalize([-sun[0], -sun[1], -0.2]);
+  const moon = V3.normalize([-0.2, -sun[1], -sun[2]]);
   const kekuatanBulan = smoothstep(0.0, 0.25, -e) * 0.22;
   const pakaiMatahari = e > -0.02;
   const lampu = state.lampuPaksa ? 1 : smoothstep(0.12, -0.04, e);
@@ -151,10 +152,10 @@ function suasana(jam) {
 // =====================================================================
 //  KAMERA: jalan di selasar / orbit / bebas (WASD)
 // =====================================================================
-const LANTAI = scene.selasar.LANTAI_Y;
+const LANTAI = scene.selasar.LANTAI_Y, PANJANG_SELASAR = scene.selasar.L;
 const kamera = {
   mode: "orbit", pos: [0, 1.86, -2], yaw: 0, pitch: 0,
-  orbit: { target: [6, 1.5, -32], jarak: 64, yaw: -0.95, pitch: 0.42 },
+  orbit: { target: [2, 1.5, -30], jarak: 72, yaw: 0.75, pitch: 0.5 },
   jalanZ: -2, lihatYaw: 0, lihatPitch: 0,
 };
 const arahDari = (yaw, pitch) => [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
@@ -171,7 +172,7 @@ function updateKamera(dt) {
   const k = kamera;
   if (k.mode === "jalan") {
     k.jalanZ -= 1.3 * dt;                                       // kecepatan jalan kaki
-    if (k.jalanZ < -62) k.jalanZ = -2;
+    if (k.jalanZ < -(PANJANG_SELASAR - 1)) k.jalanZ = -2;
     const bob = Math.sin(k.jalanZ * Math.PI / 0.7) * 0.02;
     k.pos = [0.1 * Math.sin(k.jalanZ * 0.15), LANTAI + 1.45 + bob, k.jalanZ];
     k.yaw = k.lihatYaw; k.pitch = k.lihatPitch - 0.03;
@@ -189,8 +190,8 @@ function updateKamera(dt) {
     if (tombol.has("KeyS") || tombol.has("ArrowDown")) gerak = V3.sub(gerak, f);
     if (tombol.has("KeyD") || tombol.has("ArrowRight")) gerak = V3.add(gerak, r);
     if (tombol.has("KeyA") || tombol.has("ArrowLeft")) gerak = V3.sub(gerak, r);
-    if (tombol.has("KeyE")) gerak[1] += 1;
-    if (tombol.has("KeyQ")) gerak[1] -= 1;
+    if (tombol.has("Space")) gerak[1] += 1;                                     // naik
+    if (tombol.has("ControlLeft") || tombol.has("ControlRight")) gerak[1] -= 1; // turun
     k.pos = V3.add(k.pos, V3.scale(gerak, cepat * dt));
     k.pos[1] = Math.max(0.3, k.pos[1]);
   }
@@ -233,7 +234,10 @@ window.addEventListener("keydown", (e) => {
   if (MODE_ANGKA[e.code]) { setModeKamera(MODE_ANGKA[e.code]); return; }
   if (e.code === "KeyH") { togglePanel(); return; }
   tombol.add(e.code);
-  if (["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+  // Spasi = naik, Ctrl = turun. preventDefault juga mencegah Spasi menggulir halaman / menekan tombol,
+  // dan pintasan Ctrl+S/A/D. (Ctrl+W tidak bisa dicegah browser -> pakai panah saat menahan Ctrl.)
+  if (["KeyW", "KeyA", "KeyS", "KeyD", "Space", "ControlLeft", "ControlRight",
+    "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
     e.preventDefault();
     if (kamera.mode !== "bebas") setModeKamera("bebas");
   }

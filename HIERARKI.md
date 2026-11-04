@@ -51,17 +51,16 @@ Keterangan: `×N` = node berulang, ⟳ = beranimasi, ☀ = sumber cahaya, ▦ = 
 Dunia (Scene)                                   akar scene graph
 ├── Lingkungan
 │   ├── Rumput ▦
-│   ├── Jalur Paving ▦
-│   ├── Lahan Parkir ▦
-│   └── Jalan Paving Motor ▦                    lintasan berbentuk stadion
+│   ├── Tanah Selatan ▦ / Tanah Timur ▦         tanah kering (cokelat pada citra)
+│   └── Jalur Paving ▦                          jalan setapak menuju parkir
 │
-├── Selasar                                     koridor beratap utama (66 m)
+├── Selasar                                     koridor beratap utama (54 m, lantai 56 m)
 │   ├── Lantai
 │   │   ├── Pelat Beton ▦
 │   │   ├── Keramik ▦                           keramik diagonal, memantulkan langit
 │   │   ├── List Tepi Kiri ▦
 │   │   └── List Tepi Kanan ▦
-│   ├── Segmen ×23                              satu bentang setiap 3 m
+│   ├── Segmen ×19                              satu bentang setiap 3 m
 │   │   ├── Kolom Kiri / Kolom Kanan
 │   │   │   └── Pelat Dasar
 │   │   ├── Kuda-kuda
@@ -69,7 +68,7 @@ Dunia (Scene)                                   akar scene graph
 │   │   ├── Balok Ikat
 │   │   ├── Kasau ×3                            setiap 0,75 m
 │   │   │   └── Batang Miring ×2
-│   │   └── Lampu Neon ☀                        hanya di segmen genap (11 buah)
+│   │   └── Lampu Neon ☀                        hanya di segmen genap (9 buah)
 │   ├── Rangka Memanjang
 │   │   ├── Balok Tepi Kiri / Balok Tepi Kanan
 │   │   ├── Balok Bubungan
@@ -80,31 +79,16 @@ Dunia (Scene)                                   akar scene graph
 │       │   └── Spandek Atas ▦
 │       └── Nok (tutup bubungan) ▦
 │
-├── Selasar Kantilever                          cabang ke Gedung Aula, diputar 90°
-│   ├── Lantai
-│   │   ├── Dinding Beton ▦
-│   │   ├── Keramik ▦
-│   │   └── List Tepi ×2 ▦
-│   ├── Sambungan ▦                             penghubung ke selasar utama
-│   │   └── Keramik Sambungan ▦
-│   ├── Portal ×9
-│   │   ├── Tiang Tinggi
-│   │   │   └── Balok Atas (kantilever)
-│   │   ├── Tiang Pendek
-│   │   ├── Balok Atap
-│   │   └── Kabel Baja ×1–2
-│   └── Rangka Memanjang
-│       ├── Balok Tepi ×2
-│       └── Atap Miring ▦                       atap miring satu arah
-│
-├── Area Parkir
-│   ├── Pagar ×4 (Barat Utara, Barat Selatan, Timur, Utara)
+├── Area Parkir                                 menempel di sudut selasar & Gedung ITS ROBOCON
+│   ├── Lahan Parkir ▦                          segi empat, satu sisi miring mengikuti fasad
+│   ├── Jalan Paving Motor ▦                    berbentuk L (tidak melingkar), dari selasar ke gedung
+│   ├── Pagar ×5 (Selasar, Gedung, Selatan, Barat 1, Barat 2)
 │   │   ├── Tiang Pagar ×N
 │   │   ├── Pipa Atas
 │   │   └── Pipa Tengah
-│   └── Motor Parkir ×±110                      struktur sama dengan Motor (lihat bawah)
+│   └── Motor Parkir ×±60                       struktur sama dengan Motor (lihat bawah)
 │
-├── Motor Melaju ⟳                              bergerak di lintasan
+├── Motor Melaju ⟳ (anak Area Parkir)            bolak-balik di jalan, putar balik di ujung
 │   └── Rangka Motor ⟳                          miring saat menikung
 │       ├── Roda Belakang ⟳                     berputar
 │       │   ├── Ban (torus)
@@ -142,21 +126,35 @@ Dunia (Scene)                                   akar scene graph
 │               └── Betis ⟳                     menekuk
 │                   └── Sepatu
 │
-├── Gedung
-│   ├── Gedung Awal, Gedung Ujung, Gedung Samping Parkir, Gedung Aula, Gedung Jauh ×2
+├── Gedung                                      posisi & arah dari citra satelit
+│   ├── Gedung Barat, Gedung IRIS Robotics, Gedung Bayucaraka, Gedung ITS ROBOCON,
+│   │   Bangunan Samping IRIS, Penghubung IRIS–ROBOCON, Bangunan Belakang ROBOCON,
+│   │   Gedung Utara, Gudang Kecil, Gedung Jauh ×2
 │   │   ├── Badan Gedung ▦                      tekstur fasad berjendela
-│   │   ├── Pelat Lantai ×(jumlah lantai − 1)
-│   │   ├── Atap Dak  atau  Atap Lengkung ▦     (Gedung Aula: lengkung)
-│   │   └── Pintu Masuk / Pintu Samping
+│   │   ├── Pelat Lantai ×(lantai − 1)          hanya Gedung Jauh
+│   │   ├── Atap Pelana                         atau Atap Dak (datar)
+│   │   │   ├── Pengisi Pelana                  prisma segitiga
+│   │   │   ├── Atap Utara / Atap Selatan       miring 6°
+│   │   │   │   └── Spandek ▦
+│   │   │   └── Nok
+│   │   ├── Pintu Selasar                       Gedung Barat & ROBOCON (ujung selasar)
+│   │   └── Teras Lantai 1                      IRIS & ROBOCON, menghadap selasar
+│   │       └── Bagian ×1–2                     dipotong di tempat selasar menempel
+│   │           ├── Lantai Teras ▦              ditinggikan 45 cm
+│   │           ├── Keramik Teras ▦
+│   │           ├── Atap Teras ▦                kanopi beton setinggi 3,6 m
+│   │           ├── Pipa Atas, Pipa Tengah, Pagar Samping ×2
+│   │           ├── Jeruji ×N
+│   │           └── Kolom Teras ×N              setiap ±4 m
 │
-├── Lampu Taman
-│   └── Lampu Taman ×8
+├── Lampu Taman                                 di rumput antara selasar & Gedung IRIS
+│   └── Lampu Taman ×5
 │       └── Alas Beton ▦
 │           └── Tiang
 │               └── Bola Lampu ☀                point light malam
 │
 └── Pepohonan
-    └── Pohon ×22
+    └── Pohon ×30                               16 dari rumpun pohon citra, 14 acak di luar citra
         └── Batang ⟳ ▦                          bergoyang tertiup angin
             ├── Cabang ×3 ▦
             │   └── Tajuk ▦
@@ -204,27 +202,48 @@ Hanya `Batang` yang dianimasikan dengan rotasi kecil X/Z. Semua `Cabang` dan `Ta
 
 ### d. Objek berulang (instancing lewat hierarki)
 
-- `Segmen ×23` hanya dibuat dalam satu loop dengan `local = trs(0, 0, −i × 3)`.
+- `Segmen ×19` hanya dibuat dalam satu loop dengan `local = trs(0, 0, −i × 3)`.
   Isi segmen (kolom, kuda-kuda, kasau, lampu) didefinisikan sekali dalam koordinat lokal segmen.
-- `Selasar Kantilever` dibangun memanjang ke arah −z lokal, lalu **seluruh cabang** diputar 90° (`trs(−2.45, 0, −33, 0, π/2, 0)`), sehingga semua anaknya ikut menghadap −x dunia.
-- `Motor Parkir ×±110` memakai fungsi `buatMotor()` yang sama dengan `Motor Melaju`. Bedanya:
+- `Area Parkir` mengisi sudut antara sisi selatan selasar dan teras Gedung ITS ROBOCON: pagar utara menempel ke selasar, pagar timur menempel ke teras gedung (mengikuti fasad yang sedikit miring). Jalan berbentuk L di sisi barat dan selatan, tidak melingkar, sehingga `Motor Melaju` berjalan bolak-balik dan memutar balik 180° di setiap ujung jalan.
+- `Teras Lantai 1` dibuat dengan `buatBalkon()`: grup teras diputar sehingga sumbu x-nya sepanjang dinding, lalu lantai, pagar, kolom, dan kanopi diletakkan dalam koordinat lokal itu.
+- Setiap `Gedung` diputar dengan `trs(cx, 0, cz, 0, yaw, 0)`. Atap, pintu, dan pengisi pelana didefinisikan dalam koordinat lokal gedung, sehingga ikut berputar mengikuti arah gedung pada citra.
+- `Motor Parkir ×±60` memakai fungsi `buatMotor()` yang sama dengan `Motor Melaju`. Bedanya:
   - `Rangka Motor` dimiringkan tetap (−0,08 rad) karena motor parkir bertumpu pada standar samping.
   - `Kemudi` dibelokkan acak.
 
-## 4. Optimasi tanpa merusak hierarki
+## 4. Tata letak dari citra satelit
+
+Posisi objek diambil dari `footage/Screenshot from 2026-11-05 03-17-41.png` (714 × 630 piksel).
+Bentuk 3D selasar mengikuti video di `footage/WhatsApp Unknown 2026-11-05 at 03.18.08/`.
+
+- Persegi panjang tipis pada citra = **Selasar**. Bangunan lain = **Gedung**.
+- Sumbu dunia disejajarkan dengan selasar: −z = arah selasar (barat → timur, menuju Gedung ITS ROBOCON), +x = selatan (area parkir), −x = utara (Gedung IRIS).
+- Skala 0,1469 m/piksel, dipilih agar lantai selasar (56 m) tepat dari dinding Gedung Barat ke dinding Gedung ITS ROBOCON.
+- `peta(u, v)` di `scene.js` mengubah piksel citra → `[x, z]` dunia; `piksel(x, z)` kebalikannya.
+- `gedungPiksel(nama, [kiriAtas, kananAtas, kiriBawah], ...)` membuat gedung dari tiga sudut atapnya pada citra: lebar, kedalaman, posisi pusat, dan sudut putarnya dihitung otomatis.
+
+| Gedung | Sudut atap pada citra (piksel) |
+|--------|--------------------------------|
+| Gedung Barat (ujung barat selasar) | (−50,383) (46,383) (−50,560) |
+| Gedung IRIS Robotics | (18,204) (429,160) (36,375) |
+| Gedung Bayucaraka | (464,150) (639,136) (486,336) |
+| Gedung ITS ROBOCON (ujung timur selasar) | (404,357) (554,343) (443,536) |
+| Gedung Utara | (32,72) (256,60) (40,158) |
+
+## 5. Optimasi tanpa merusak hierarki
 
 Node yang tidak memiliki `update` (dan tidak berada di bawah node beranimasi) disebut **statis**.
 Saat program dimulai, mesh statis digabung per material menjadi beberapa buffer besar (`gabungStatis()` di `main.js`).
-Hasilnya, ±2.350 part digambar dengan ±250 draw call (angka tampil di pojok kanan bawah layar).
+Hasilnya, ±1.670 part digambar dengan ±320 draw call (angka tampil di pojok kanan bawah layar).
 
 Node dinamis (motor melaju, pejalan, pohon) tetap digambar satu per satu dengan matriks dunianya masing-masing setiap frame.
 
-## 5. Ringkasan file
+## 6. Ringkasan file
 
 | File | Isi |
 |------|-----|
 | `js/matriks.js` | Pustaka matriks 4×4: translasi, rotasi, skala, `lookAt`, perspektif, invers, `trs`, `shapeM` |
-| `js/geometri.js` | Pembuat mesh: kotak, silinder, bola, torus, spandek bergelombang, pita jalan |
+| `js/geometri.js` | Pembuat mesh: kotak, silinder, bola, torus, prisma, spandek bergelombang, pita jalan |
 | `js/tekstur.js` | 10 tekstur prosedural (Canvas 2D) |
 | `js/shader.js` | Shader GLSL: Blinn-Phong, point light, spotlight, shadow map, kabut, langit |
 | `js/scene.js` | **Hierarki objek (scene graph) & fungsi animasi** |
