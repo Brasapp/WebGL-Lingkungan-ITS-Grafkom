@@ -20,6 +20,11 @@
   <section id="viewer" class="viewer" aria-label="Tampilan 3D">
     <canvas id="kanvas" tabindex="0"></canvas>
 
+    <!-- Mode Video: video asli di kanan kanvas, kamera WebGL mengikuti waktu video -->
+    <div id="panelVideo" class="panel-video" hidden>
+      <video id="videoBanding" controls muted playsinline loop preload="none"></video>
+    </div>
+
     <!-- Panel kontrol melayang di atas kanvas -->
     <div id="panel" class="panel">
       <div class="kepala">
@@ -32,6 +37,13 @@
           <button data-mode="orbit" title="1">Orbit</button>
           <button data-mode="jalan" title="2">Jalan</button>
           <button data-mode="bebas" title="3">Bebas</button>
+          <button data-mode="video" title="4 — WebGL &amp; video asli berdampingan">Video</button>
+        </div>
+        <div class="baris" id="barisVideo" hidden>
+          <span class="judul">Video</span>
+          <button data-video="0" title="Video 1 — menyusuri selasar">1 Selasar</button>
+          <button data-video="1" title="Video 2 — area parkir">2 Parkir</button>
+          <button data-video="2" title="Video 3 — taman &amp; lampu">3 Taman</button>
         </div>
         <div class="baris">
           <span class="judul">Waktu</span>
@@ -56,7 +68,8 @@
           Klik area 3D dulu agar keyboard aktif<br>
           Seret: lihat sekeliling · Scroll: zoom / maju<br>
           WASD / panah: gerak · Spasi/Ctrl: naik/turun · Shift: cepat<br>
-          1/2/3: mode kamera · H: sembunyikan panel · F: layar penuh
+          1–4: mode kamera · H: sembunyikan panel · F: layar penuh<br>
+          Mode Video: kamera WebGL mengikuti video (pose diperkirakan) · Spasi: putar/jeda
         </p>
       </div>
     </div>
@@ -98,8 +111,8 @@
 │       └── Nok
 ├── Area Parkir                              sudut selasar &amp; Gedung ITS ROBOCON
 │   ├── Lahan Parkir, Jalan Paving Motor (L)
-│   ├── Pagar ×5 ── Tiang Pagar ×N, Pipa Atas, Pipa Tengah
-│   ├── Motor Parkir ×60
+│   ├── Pagar ×4 ── Tiang Pagar ×N, Pipa Atas, Pipa Tengah
+│   ├── Motor Parkir ×±55                    6 baris berpasangan, lorong di belakangnya
 │   └── Motor Melaju ⟳
 │       └── Rangka Motor ⟳
 │           ├── Roda Belakang ⟳ ── Ban, Velg

@@ -717,7 +717,6 @@ function buildScene(gl, T) {
   }
   const X_SELASAR = 2.4, X_SELATAN = X_SELASAR + 13;                  // lebar parkir 13 m (tegak lurus selasar)
   const Z_BARAT = zGedung(X_SELASAR) + 18;                             // panjang parkir 18 m (searah selasar)
-  const xTengahParkir = (X_SELASAR + X_SELATAN) / 2;
   const parkir = root.add(grp("Area Parkir", null, { info: "di sudut antara selasar & Gedung ITS ROBOCON" }));
 
   // Lahan parkir: segi empat dengan satu sisi miring (mengikuti fasad gedung)
@@ -764,25 +763,42 @@ function buildScene(gl, T) {
       p.add(part(nm, MS.cyl8, MT.kuning, trs(len / 2, y, 0, 0, 0, 90 * DEG), M4.scaling(0.05, len, 0.05)));
     return p;
   }
-  // Pagar: sisi selasar, sisi gedung, sisi selatan, dan sisi barat (ada jalan masuk di tengah, menghadap jalan)
-  const MASUK = [xTengahParkir - 1.6, xTengahParkir + 1.6];
+  // Pagar: sisi selasar, sisi gedung, sisi selatan, dan sisi barat.
+  // Jalan masuk (celah pagar barat) mepet ke selasar, di sudut barat-laut — sesuai video 2.
+  const MASUK = [X_SELASAR, X_SELASAR + 3.0];
   parkir.add(buatPagar("Pagar Selasar", X_SELASAR, zGedung(X_SELASAR), X_SELASAR, Z_BARAT));
   parkir.add(buatPagar("Pagar Gedung", X_SELASAR, zGedung(X_SELASAR), X_SELATAN, zGedung(X_SELATAN)));
   parkir.add(buatPagar("Pagar Selatan", X_SELATAN, zGedung(X_SELATAN), X_SELATAN, Z_BARAT));
-  parkir.add(buatPagar("Pagar Barat 1", X_SELASAR, Z_BARAT, MASUK[0], Z_BARAT));
-  parkir.add(buatPagar("Pagar Barat 2", MASUK[1], Z_BARAT, X_SELATAN, Z_BARAT));
+  parkir.add(buatPagar("Pagar Barat", MASUK[1], Z_BARAT, X_SELATAN, Z_BARAT));
 
-  // 4 baris motor sejajar selasar; motor menghadap pagar / lorong tengah (lorong lurus dengan jalan masuk)
+  // Motor diparkir dalam baris-baris sejajar fasad Gedung ITS ROBOCON / Barunastra (bukan menghadap selasar).
+  // Susunan dari gedung ke arah pagar barat (→ = menghadap gedung, ← = membelakangi gedung):
+  //     gedung | →  ‹lorong›  ← →  ‹lorong›  ← →  ‹lorong›  ←  | pagar barat
+  // Dua baris di antara lorong saling berhadapan (moncong ketemu moncong), jadi bagian belakang setiap
+  // motor menempel ke lorong: motor bisa mundur keluar ke lorong, lalu lewat lajur kosong (±2,5 m) di sisi
+  // selasar menuju pintu masuk.
   const rng = makeRng(2026);
-  const baris = [[1.4, -1], [3.5, 1], [9.5, -1], [11.6, 1]].map(([dx, a]) => [X_SELASAR + dx, a]);   // [x, arah hadap]
+  const hadapGedung = Math.atan2(-keluar[0], -keluar[1]);            // yaw agar +z lokal motor menghadap fasad
+  const DEPAN = 0.75, BELAKANG = 0.85;                               // ujung motor dari titik asal (buatMotor)
+  const LORONG = 1.9, CELAH = 0.2;                                   // lebar lorong, jarak antar moncong
+  const barisParkir = [];                                            // [jarak dari tepi teras, menghadap gedung?]
+  let tepi = 0.3;                                                    // jarak bebas dari tepi teras
+  for (let k = 0; k < 3; k++) {
+    barisParkir.push([tepi + DEPAN, true]);                          // → menghadap gedung
+    tepi += DEPAN + BELAKANG + LORONG;                               // belakangnya: lorong
+    barisParkir.push([tepi + BELAKANG, false]);                      // ← membelakangi gedung (belakang ke lorong)
+    tepi += BELAKANG + DEPAN + CELAH;                                // moncongnya bertemu baris berikutnya
+  }
   let nomor = 0;
-  for (const [x, arah] of baris) {
-    for (let z = Z_BARAT - 0.7; z > zGedung(x) + 0.7; z -= 0.95) {
-      if (rng() < 0.2) continue;                                     // slot kosong
-      const yaw = arah * 90 * DEG + (rng() - 0.5) * 0.25;
+  for (const [d, keGedung] of barisParkir) {
+    for (let x = MASUK[1] - 0.1; x < X_SELATAN - 0.4; x += 0.95) {
+      const z = zGedung(x) + d;
+      if (z + BELAKANG > Z_BARAT - 0.3) continue;                    // tidak menabrak pagar barat
+      if (rng() < 0.15) continue;                                    // slot kosong
+      const yaw = hadapGedung + (keGedung ? 0 : Math.PI) + (rng() - 0.5) * 0.2;
       const pilihan = [0, 0, 0, 0, 0, 0, 1, 2, 3, 4];                // kebanyakan motor hitam, seperti aslinya
       const m = buatMotor(`Motor Parkir ${++nomor}`, warnaMotor[pilihan[Math.floor(rng() * pilihan.length)]], {
-        local: trs(x + (rng() - 0.5) * 0.3, 0.012, z, 0, yaw, 0), group: "Motor Parkir",
+        local: trs(x + (rng() - 0.5) * 0.15, 0.012, z + (rng() - 0.5) * 0.08, 0, yaw, 0), group: "Motor Parkir",
       });
       m.rangkaM.local = trs(0, 0, 0, 0, 0, -0.08);                  // miring di standar samping
       m.kemudi.local = trs(0, 0, 0.5, 0, (rng() - 0.5) * 0.7, 0);    // setang dibelokkan acak
@@ -1219,11 +1235,89 @@ const kamera = {
   jalanZ: -2, lihatYaw: 0, lihatPitch: 0,
 };
 const arahDari = (yaw, pitch) => [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
-// Mode kamera: "orbit" (mengelilingi scene), "jalan" (menyusuri selasar), "bebas" (terbang WASD)
+
+// ---------------------------------------------------------------------
+//  MODE VIDEO: kanvas WebGL (kiri) & video asli (kanan) berdampingan.
+//  Kamera WebGL mengikuti waktu video. Pose kamera diperkirakan dari frame
+//  video (titik hilang selasar, posisi kolom / lampu / pagar), lalu
+//  diinterpolasi linear di antara keyframe. Ubah angka di sini untuk kalibrasi.
+//  Keyframe: [detik, x, y, z, yaw, pitch]
+//    yaw 0 = menghadap -z (sepanjang selasar menuju Gedung ITS ROBOCON),
+//    yaw + = menoleh ke kanan (+x, selatan / parkir); pitch + = mendongak.
+// ---------------------------------------------------------------------
+const FOLDER_VIDEO = "footage/WhatsApp%20Unknown%202026-11-05%20at%2003.18.08/";
+const MATA = LANTAI + 1.5;                       // tinggi mata saat berdiri di lantai selasar
+const Z_PAGAR_BARAT = -34.3;                     // pagar barat parkir (lihat Area Parkir di buildScene)
+const VIDEO_REF = [
+  {
+    nama: "Video 1 — menyusuri selasar",
+    src: FOLDER_VIDEO + "WhatsApp%20Video%202026-11-04%20at%2020.16.16.mp4",
+    // berjalan ±1,25 m/detik dari pintu gedung barat sambil menoleh kiri-kanan
+    kunci: [
+      [0, 0.15, MATA, 0.9, 0.05, 0], [1, 0.15, MATA, -0.37, 0.02, -0.04], [2, 0.15, MATA, -1.64, -0.1, -0.06],
+      [3, 0.15, MATA, -2.91, 0.02, -0.08], [4, 0.15, MATA, -4.18, 0.13, -0.12], [5, 0.15, MATA, -5.45, -0.14, -0.12],
+      [6, 0.15, MATA, -6.72, -0.05, -0.12], [7, 0.15, MATA, -7.99, 0.19, -0.15], [8, 0.15, MATA, -9.26, 0.09, -0.15],
+      [9, 0.15, MATA, -10.53, -0.05, -0.14], [10, 0.15, MATA, -11.8, 0.08, -0.14], [11, 0.15, MATA, -13.07, 0.04, -0.12],
+      [12, 0.15, MATA, -14.34, -0.11, -0.12], [13, 0.15, MATA, -15.61, -0.12, -0.12], [14, 0.15, MATA, -16.88, -0.09, -0.12],
+      [15, 0.15, MATA, -18.15, 0.18, -0.12], [16, 0.15, MATA, -19.42, 0.15, -0.12], [17, 0.15, MATA, -20.69, -0.13, -0.12],
+      [18, 0.15, MATA, -21.96, 0, -0.12], [19, 0.15, MATA, -23.23, 0.1, -0.12], [20, 0.15, MATA, -24.5, 0.06, -0.12],
+      [21.2, 0.15, MATA, -26.0, 0.06, -0.12],
+    ],
+  },
+  {
+    nama: "Video 2 — area parkir",
+    src: FOLDER_VIDEO + "WhatsApp%20Video%202026-11-04%20at%2020.16.18.mp4",
+    // di jalur paving sisi barat parkir, menoleh ke gedung, lalu naik ke selasar & melihat ke parkir
+    kunci: [
+      [0, 4.6, 1.55, Z_PAGAR_BARAT + 2.0, 1.33, -0.12], [0.4, 4.3, 1.55, Z_PAGAR_BARAT + 2.1, 1.2, -0.12],
+      [0.8, 3.8, 1.55, Z_PAGAR_BARAT + 2.3, 0.85, -0.1], [1.2, 3.0, 1.55, Z_PAGAR_BARAT + 2.7, 0.4, -0.12],
+      [1.6, 2.4, 1.55, Z_PAGAR_BARAT + 3.1, 0.15, -0.15], [2.0, 1.8, 1.75, Z_PAGAR_BARAT + 2.7, 0.45, -0.3],
+      [2.4, 1.2, MATA, Z_PAGAR_BARAT + 2.1, 0.85, -0.35], [2.8, 1.1, MATA, Z_PAGAR_BARAT + 1.7, 0.95, -0.33],
+      [3.4, 1.0, MATA, Z_PAGAR_BARAT + 1.3, 0.95, -0.3],
+    ],
+  },
+  {
+    nama: "Video 3 — taman & lampu",
+    src: FOLDER_VIDEO + "WhatsApp%20Video%202026-11-04%20at%2020.16.19.mp4",
+    // di rumput utara selasar dekat teras gedung timur, menghadap barat daya sambil berjalan pelan
+    kunci: [
+      [0, -8.0, 1.6, -47.5, 2.5, 0.05], [1.4, -8.0, 1.6, -46.5, 2.62, 0.05], [2.9, -8.0, 1.6, -45.5, 2.72, 0.05],
+    ],
+  },
+];
+const elVideo = document.getElementById("videoBanding");
+const elPanelVideo = document.getElementById("panelVideo");
+const elBarisVideo = document.getElementById("barisVideo");
+let videoAktif = 0;
+function pilihVideo(i) {
+  videoAktif = clamp(i | 0, 0, VIDEO_REF.length - 1);
+  const v = VIDEO_REF[videoAktif];
+  if (!elVideo.src.endsWith(v.src)) { elVideo.src = v.src; elVideo.title = v.nama; }
+  elVideo.currentTime = 0;
+  elVideo.play().catch(() => {});
+  document.querySelectorAll("[data-video]").forEach((b) => b.classList.toggle("aktif", +b.dataset.video === videoAktif));
+}
+// Pose kamera pada detik t: interpolasi linear antara dua keyframe terdekat
+function poseVideo(kunci, t) {
+  let i = 0;
+  while (i < kunci.length - 2 && kunci[i + 1][0] <= t) i++;
+  const a = kunci[i], b = kunci[Math.min(i + 1, kunci.length - 1)];
+  const f = b[0] > a[0] ? clamp((t - a[0]) / (b[0] - a[0]), 0, 1) : 0;
+  const lerp = (k) => a[k] + (b[k] - a[k]) * f;
+  return { pos: [lerp(1), lerp(2), lerp(3)], yaw: lerp(4), pitch: lerp(5) };
+}
+
+// Mode kamera: "orbit" (mengelilingi scene), "jalan" (menyusuri selasar), "bebas" (terbang WASD),
+// "video" (berdampingan dengan video asli)
 function setModeKamera(mode) {
   if (mode === "jalan") { kamera.lihatYaw = 0; kamera.lihatPitch = 0; }
+  const banding = mode === "video";
+  if (banding && kamera.mode !== "video") pilihVideo(videoAktif);
+  if (!banding) elVideo.pause();
   kamera.mode = mode;
   document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("aktif", b.dataset.mode === mode));
+  elViewer.classList.toggle("banding", banding);
+  elPanelVideo.hidden = elBarisVideo.hidden = !banding;
 }
 
 const tombol = new Set();
@@ -1254,6 +1348,9 @@ function updateKamera(dt) {
     if (tombol.has("ControlLeft") || tombol.has("ControlRight")) gerak[1] -= 1; // turun
     k.pos = V3.add(k.pos, V3.scale(gerak, cepat * dt));
     k.pos[1] = Math.max(0.3, k.pos[1]);
+  } else if (k.mode === "video") {
+    const p = poseVideo(VIDEO_REF[videoAktif].kunci, elVideo.currentTime || 0);
+    k.pos = p.pos; k.yaw = p.yaw; k.pitch = p.pitch;
   }
 }
 
@@ -1266,7 +1363,7 @@ kanvas.addEventListener("pointerdown", (e) => {
 kanvas.addEventListener("pointerup", () => { seret = null; });
 kanvas.addEventListener("pointercancel", () => { seret = null; });
 kanvas.addEventListener("pointermove", (e) => {
-  if (!seret) return;
+  if (!seret || kamera.mode === "video") return;           // mode video: kamera dikendalikan video
   const dx = e.clientX - seret.x, dy = e.clientY - seret.y;
   seret = { x: e.clientX, y: e.clientY };
   const k = kamera;
@@ -1281,6 +1378,7 @@ kanvas.addEventListener("pointermove", (e) => {
 });
 kanvas.addEventListener("wheel", (e) => {
   e.preventDefault();
+  if (kamera.mode === "video") return;
   if (kamera.mode === "orbit") kamera.orbit.jarak = clamp(kamera.orbit.jarak * Math.exp(e.deltaY * 0.001), 6, 160);
   else {
     if (kamera.mode !== "bebas") setModeKamera("bebas");
@@ -1290,14 +1388,20 @@ kanvas.addEventListener("wheel", (e) => {
 // Keyboard hanya menggerakkan kamera saat area 3D aktif (fokus di dalamnya atau layar penuh),
 // supaya Spasi / panah tetap bisa menggulir halaman saat membaca bagian lain.
 const elViewer = document.getElementById("viewer");
-const MODE_ANGKA = { Digit1: "orbit", Digit2: "jalan", Digit3: "bebas" };
+const MODE_ANGKA = { Digit1: "orbit", Digit2: "jalan", Digit3: "bebas", Digit4: "video" };
 const viewerAktif = () => elViewer.contains(document.activeElement) || layarPenuhAktif();
 window.addEventListener("keydown", (e) => {
   if (!viewerAktif()) return;
   if (e.target.tagName === "INPUT" && e.target.type === "range") return;
+  if (e.target === elVideo) return;                       // tombol video bawaan (spasi, panah) ditangani browser
   if (e.code === "KeyF") { toggleLayarPenuh(); return; }
   if (MODE_ANGKA[e.code]) { setModeKamera(MODE_ANGKA[e.code]); return; }
   if (e.code === "KeyH") { togglePanel(); return; }
+  if (kamera.mode === "video" && e.code === "Space") {    // mode video: spasi = putar / jeda
+    e.preventDefault();
+    if (elVideo.paused) elVideo.play().catch(() => {}); else elVideo.pause();
+    return;
+  }
   tombol.add(e.code);
   // Spasi = naik, Ctrl = turun. preventDefault juga mencegah Spasi menggulir halaman / menekan tombol,
   // dan pintasan Ctrl+S/A/D. (Ctrl+W tidak bisa dicegah browser -> pakai panah saat menahan Ctrl.)
@@ -1473,6 +1577,7 @@ const formatJam = (j) => `${String(Math.floor(j)).padStart(2, "0")}.${String(Mat
 //  PANEL KONTROL
 // =====================================================================
 document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => setModeKamera(b.dataset.mode)));
+document.querySelectorAll("[data-video]").forEach((b) => b.addEventListener("click", () => pilihVideo(+b.dataset.video)));
 elJam.addEventListener("input", () => { state.jam = +elJam.value; });
 const ikatCek = (id, key) => {
   const el = document.getElementById(id);
@@ -1493,9 +1598,10 @@ elBtnPanel.addEventListener("click", togglePanel);
 // setelah tombol panel diklik, fokus kembali ke kanvas agar keyboard langsung menggerakkan kamera
 document.querySelectorAll("#viewer button").forEach((b) => b.addEventListener("mouseup", () => kanvas.focus({ preventScroll: true })));
 
-// Parameter URL opsional, mis. index.html?jam=21&mode=jalan
+// Parameter URL opsional, mis. index.html?jam=21&mode=jalan  atau  index.html?mode=video&video=2
 const q = new URLSearchParams(location.search);
 if (q.has("jam")) { state.jam = +q.get("jam"); elJam.value = state.jam; }
+if (q.has("video")) videoAktif = clamp(+q.get("video") - 1, 0, VIDEO_REF.length - 1) || 0;
 setModeKamera(q.get("mode") || "orbit");
 requestAnimationFrame(loop);
 

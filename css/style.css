@@ -26,13 +26,25 @@ h1, h2 { margin: 0; line-height: 1.2; }
 
 /* ---------- area 3D ---------- */
 .viewer { position: relative; width: 100%; height: min(72vh, 62vw); min-height: 320px;
-          border: 1px solid var(--garis); border-radius: 12px; overflow: hidden; background: #000; }
+          border: 1px solid var(--garis); border-radius: 12px; overflow: hidden; background: #000;
+          container-type: size; }   /* cqw / cqh dipakai mode Video */
 /* layar penuh: Fullscreen API, atau cadangan CSS bila API tidak tersedia */
 .viewer:fullscreen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
 .viewer.penuh { position: fixed; inset: 0; z-index: 50; width: 100vw; height: 100vh; min-height: 0;
                 border: 0; border-radius: 0; }
 #kanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
 #kanvas:focus-visible { box-shadow: inset 0 0 0 2px var(--aksen); }
+
+/* mode Video: WebGL (kiri) & video asli (kanan) berdampingan, dua kotak potret 9:16 berukuran sama */
+.viewer.banding { background: #0d0e10; }
+.viewer.banding #kanvas, .panel-video video {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: min(50cqw - 16px, (100cqh - 16px) * 9 / 16); height: auto; aspect-ratio: 9 / 16;
+  border-radius: 6px; }
+.viewer.banding #kanvas { inset: auto; left: 25%; top: 50%; }
+.panel-video { position: absolute; top: 0; bottom: 0; left: 50%; right: 0; }
+.panel-video video { left: 50%; display: block; background: #000; object-fit: contain; }
+.viewer.banding .fps { right: auto; left: 10px; }
 
 /* panel kontrol melayang */
 .panel { position: absolute; top: 12px; left: 12px; background: var(--panel); border: 1px solid var(--garis);

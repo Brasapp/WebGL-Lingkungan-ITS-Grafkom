@@ -83,11 +83,11 @@ Dunia (Scene)                                   akar scene graph
 ├── Area Parkir                                 menempel di sudut selasar & Gedung ITS ROBOCON
 │   ├── Lahan Parkir ▦                          segi empat, satu sisi miring mengikuti fasad
 │   ├── Jalan Paving Motor ▦                    berbentuk L (tidak melingkar), dari selasar ke gedung
-│   ├── Pagar ×5 (Selasar, Gedung, Selatan, Barat 1, Barat 2)
+│   ├── Pagar ×4 (Selasar, Gedung, Selatan, Barat)   jalan masuk = celah pagar barat, mepet selasar
 │   │   ├── Tiang Pagar ×N
 │   │   ├── Pipa Atas
 │   │   └── Pipa Tengah
-│   └── Motor Parkir ×±60                       struktur sama dengan Motor (lihat bawah)
+│   └── Motor Parkir ×±55                       6 baris berpasangan + 3 lorong; struktur sama dengan Motor
 │
 ├── Motor Melaju ⟳ (anak Area Parkir)            bolak-balik di jalan, putar balik di ujung
 │   └── Rangka Motor ⟳                          miring saat menikung
@@ -205,12 +205,15 @@ Hanya `Batang` yang dianimasikan dengan rotasi kecil X/Z. Semua `Cabang` dan `Ta
 
 - `Segmen ×19` hanya dibuat dalam satu loop dengan `local = trs(0, 0, −i × 3)`.
   Isi segmen (kolom, kuda-kuda, kasau, lampu) didefinisikan sekali dalam koordinat lokal segmen.
-- `Area Parkir` mengisi sudut antara sisi selatan selasar dan teras Gedung ITS ROBOCON: pagar utara menempel ke selasar, pagar timur menempel ke teras gedung (mengikuti fasad yang sedikit miring). Jalan berbentuk L di sisi barat dan selatan, tidak melingkar, sehingga `Motor Melaju` berjalan bolak-balik dan memutar balik 180° di setiap ujung jalan.
+- `Area Parkir` mengisi sudut antara sisi selatan selasar dan teras Gedung ITS ROBOCON: pagar utara menempel ke selasar, pagar timur menempel ke teras gedung (mengikuti fasad yang sedikit miring). Jalan masuk berupa celah 3 m di ujung pagar barat yang mepet ke selasar (seperti di video 2), diteruskan lajur kosong di sepanjang pagar selasar menuju gedung. Jalan berbentuk L di sisi barat dan selatan, tidak melingkar, sehingga `Motor Melaju` berjalan bolak-balik dan memutar balik 180° di setiap ujung jalan.
 - `Teras Lantai 1` dibuat dengan `buatBalkon()`: grup teras diputar sehingga sumbu x-nya sepanjang dinding, lalu lantai, pagar, kolom, dan kanopi diletakkan dalam koordinat lokal itu.
 - Setiap `Gedung` diputar dengan `trs(cx, 0, cz, 0, yaw, 0)`. Atap, pintu, dan pengisi pelana didefinisikan dalam koordinat lokal gedung, sehingga ikut berputar mengikuti arah gedung pada citra.
 - `Motor Parkir ×±60` memakai fungsi `buatMotor()` yang sama dengan `Motor Melaju`. Bedanya:
   - `Rangka Motor` dimiringkan tetap (−0,08 rad) karena motor parkir bertumpu pada standar samping.
   - `Kemudi` dibelokkan acak.
+  - Diparkir dalam 6 baris sejajar fasad Gedung ITS ROBOCON (yaw dihitung dari normal fasad). Dari gedung ke pagar barat:
+    `gedung | → lorong ← → lorong ← → lorong ←` (→ menghadap gedung, ← membelakangi gedung).
+    Baris berpasangan saling berhadapan, sehingga belakang motor selalu menempel ke lorong (lebar 1,9 m) dan motor bisa mundur keluar, lalu lewat lajur di sisi selasar menuju pintu masuk.
 
 ## 4. Tata letak dari citra satelit
 
@@ -244,5 +247,5 @@ Node dinamis (motor melaju, pejalan, pohon) tetap digambar satu per satu dengan 
 | File | Isi |
 |------|-----|
 | `js/math3d.js` | 1. Pustaka matriks 4×4 & vektor: translasi, rotasi, skala, `lookAt`, perspektif, invers, `trs`, `shapeM`<br>2. Pembuat mesh: kotak, silinder, bola, torus, prisma, spandek bergelombang, pita jalan |
-| `js/main.js` | 1. Tekstur prosedural (Canvas 2D)<br>2. Shader GLSL: Blinn-Phong, point light, spotlight, shadow map, kabut, langit<br>3. **Hierarki objek (scene graph) & fungsi animasi**<br>4. Penelusuran pohon, render loop, shadow pass, siklus siang–malam, kamera, panel kontrol<br>5. Halaman: tombol layar penuh / perkecil |
+| `js/main.js` | 1. Tekstur prosedural (Canvas 2D)<br>2. Shader GLSL: Blinn-Phong, point light, spotlight, shadow map, kabut, langit<br>3. **Hierarki objek (scene graph) & fungsi animasi**<br>4. Penelusuran pohon, render loop, shadow pass, siklus siang–malam, kamera (orbit, jalan, bebas, video), panel kontrol<br>&nbsp;&nbsp;&nbsp;Mode **Video**: kanvas & video asli berdampingan; kamera mengikuti keyframe pose `VIDEO_REF` sesuai waktu video<br>5. Halaman: tombol layar penuh / perkecil |
 | `index.html` | Tampilan 3D, anggota kelompok, desain tree, referensi foto & video |
