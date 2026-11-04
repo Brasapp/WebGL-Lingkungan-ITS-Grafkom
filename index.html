@@ -8,55 +8,149 @@
 </head>
 <body>
 
-<canvas id="kanvas" tabindex="0"></canvas>
-
-<!-- Panel kontrol melayang di atas kanvas -->
-<div id="panel" class="panel">
-  <div class="kepala">
-    <strong>Selasar ITS</strong>
-    <button id="btnPanel" title="Sembunyikan panel (H)">–</button>
+<header class="halaman-kepala">
+  <div>
+    <h1>Lorong Robotika & Parkiran <span>· Lorong Robotika</span></h1>
+    <p>Tugas 2 Grafika Komputer: scene 3D Lingkungan ITS </p>
   </div>
-  <div id="isiPanel">
-    <div class="baris">
-      <span class="judul">Kamera</span>
-      <button data-mode="orbit" title="1">Orbit</button>
-      <button data-mode="jalan" title="2">Jalan</button>
-      <button data-mode="bebas" title="3">Bebas</button>
+</header>
+
+<main>
+  <!-- Area 3D: bisa layar penuh atau ukuran halaman (tombol / tombol F) -->
+  <section id="viewer" class="viewer" aria-label="Tampilan 3D">
+    <canvas id="kanvas" tabindex="0"></canvas>
+
+    <!-- Panel kontrol melayang di atas kanvas -->
+    <div id="panel" class="panel">
+      <div class="kepala">
+        <strong>Kontrol</strong>
+        <button id="btnPanel" title="Sembunyikan panel (H)">–</button>
+      </div>
+      <div id="isiPanel">
+        <div class="baris">
+          <span class="judul">Kamera</span>
+          <button data-mode="orbit" title="1">Orbit</button>
+          <button data-mode="jalan" title="2">Jalan</button>
+          <button data-mode="bebas" title="3">Bebas</button>
+        </div>
+        <div class="baris">
+          <span class="judul">Waktu</span>
+          <input type="range" id="jam" min="0" max="24" step="0.05" value="11">
+          <output id="jamLabel">11.00</output>
+        </div>
+        <div class="baris">
+          <span class="judul"></span>
+          <button data-jam="7">Pagi</button>
+          <button data-jam="11">Siang</button>
+          <button data-jam="17.6">Senja</button>
+          <button data-jam="21">Malam</button>
+        </div>
+        <div class="baris cek">
+          <label><input type="checkbox" id="cbSiklus"> Siklus otomatis</label>
+          <label><input type="checkbox" id="cbAnimasi"> Animasi</label>
+          <label><input type="checkbox" id="cbBayangan"> Bayangan</label>
+          <label><input type="checkbox" id="cbTekstur"> Tekstur</label>
+          <label><input type="checkbox" id="cbLampu"> Lampu selalu menyala</label>
+        </div>
+        <p class="bantuan">
+          Klik area 3D dulu agar keyboard aktif<br>
+          Seret: lihat sekeliling · Scroll: zoom / maju<br>
+          WASD / panah: gerak · Spasi/Ctrl: naik/turun · Shift: cepat<br>
+          1/2/3: mode kamera · H: sembunyikan panel · F: layar penuh
+        </p>
+      </div>
     </div>
-    <div class="baris">
-      <span class="judul">Waktu</span>
-      <input type="range" id="jam" min="0" max="24" step="0.05" value="11">
-      <output id="jamLabel">11.00</output>
-    </div>
-    <div class="baris">
-      <span class="judul"></span>
-      <button data-jam="7">Pagi</button>
-      <button data-jam="11">Siang</button>
-      <button data-jam="17.6">Senja</button>
-      <button data-jam="21">Malam</button>
-    </div>
-    <div class="baris cek">
-      <label><input type="checkbox" id="cbSiklus"> Siklus otomatis</label>
-      <label><input type="checkbox" id="cbAnimasi"> Animasi</label>
-      <label><input type="checkbox" id="cbBayangan"> Bayangan</label>
-      <label><input type="checkbox" id="cbTekstur"> Tekstur</label>
-      <label><input type="checkbox" id="cbLampu"> Lampu selalu menyala</label>
-    </div>
-    <p class="bantuan">
-      Seret: lihat sekeliling · Scroll: zoom / maju<br>
-      WASD / panah: gerak · Spasi/Ctrl: naik/turun · Shift: cepat<br>
-      1/2/3: mode kamera · H: sembunyikan panel
-    </p>
+
+    <button id="btnLayar" class="btn-layar">Layar penuh</button>
+    <div id="fps" class="fps"></div>
+  </section>
+
+  <div class="info">
+    <section class="kartu anggota">
+      <h2>Anggota Kelompok</h2>
+      <ol>
+        <li><span class="nama-anggota">Bramantya Saputra</span><span class="nrp">5025241098</span></li>
+        <li><span class="nama-anggota">Uwais Achmad</span><span class="nrp">5025241103</span></li>
+      </ol>
+    </section>
+
+    <section class="kartu desain-tree">
+      <h2>Desain Tree Hubungan Antar Objek</h2>
+      <p class="rumus">
+        Anak mewarisi transformasi induknya: <code>world = world<sub>induk</sub> × local</code>.
+        Keterangan: <b>×N</b> objek berulang · <b>⟳</b> beranimasi · <b>☀</b> sumber cahaya.
+      </p>
+<pre class="tree">Dunia (Scene)
+├── Lingkungan
+│   ├── Rumput, Tanah Selatan, Tanah Timur
+│   └── Jalur Paving
+├── Selasar                                  koridor beratap (objek utama)
+│   ├── Lantai ── Pelat Beton, Keramik, List Tepi ×2
+│   ├── Segmen ×19                           satu bentang tiap 3 m
+│   │   ├── Kolom Kiri / Kanan ── Pelat Dasar
+│   │   ├── Kuda-kuda ── Batang Miring ×2
+│   │   ├── Balok Ikat
+│   │   ├── Kasau ×3 ── Batang Miring ×2
+│   │   └── Lampu Neon ☀
+│   ├── Rangka Memanjang ── Balok Tepi ×2, Balok Bubungan, Gording ×2
+│   └── Atap
+│       ├── Atap Kiri / Kanan ── Spandek Bawah, Spandek Atas
+│       └── Nok
+├── Area Parkir                              sudut selasar &amp; Gedung ITS ROBOCON
+│   ├── Lahan Parkir, Jalan Paving Motor (L)
+│   ├── Pagar ×5 ── Tiang Pagar ×N, Pipa Atas, Pipa Tengah
+│   ├── Motor Parkir ×60
+│   └── Motor Melaju ⟳
+│       └── Rangka Motor ⟳
+│           ├── Roda Belakang ⟳ ── Ban, Velg
+│           ├── Bodi, Jok, Lampu Rem, Dek Kaki, Tameng
+│           ├── Kemudi ⟳
+│           │   ├── Garpu, Setang, Spion ×2, Lampu Depan ☀
+│           │   └── Roda Depan ⟳ ── Ban, Velg
+│           └── Pengendara
+│               ├── Badan ── Helm, Lengan ×2
+│               └── Paha ×2 ── Betis
+├── Pejalan Kaki ── Pejalan ×2 ⟳
+│   └── Pinggul ⟳
+│       ├── Badan
+│       │   ├── Kepala ── Rambut
+│       │   └── Lengan Atas ×2 ⟳ ── Lengan Bawah
+│       └── Paha ×2 ⟳ ── Betis ⟳ ── Sepatu
+├── Gedung ×11                               IRIS, ITS ROBOCON, Bayucaraka, dll.
+│   ├── Badan Gedung
+│   ├── Atap Pelana ── Pengisi Pelana, Atap Utara / Selatan, Nok   (atau Atap Dak)
+│   ├── Pintu Selasar
+│   └── Teras Lantai 1 ── Lantai, Keramik, Atap Teras, Pagar, Kolom ×N
+├── Lampu Taman ×5 ── Alas Beton ── Tiang ── Bola Lampu ☀
+└── Pepohonan ── Pohon ×30 ── Batang ⟳ ── Cabang ×3 ── Tajuk</pre>
+    </section>
   </div>
-</div>
 
-<div id="fps" class="fps"></div>
+  <section class="kartu referensi">
+    <h2>Referensi</h2>
+    <p class="redup">Foto satelit untuk tata letak, dan video di lokasi untuk bentuk model 3D.</p>
+    <div class="ref-grid">
+      <figure class="ref-foto">
+        <img src="footage/Screenshot%20from%202026-11-05%2003-17-41.png" alt="Citra satelit area Lorong Robotika ITS">
+        <figcaption>Citra satelit — persegi panjang tipis = selasar, sisanya gedung</figcaption>
+      </figure>
+      <figure>
+        <video src="footage/WhatsApp%20Unknown%202026-11-05%20at%2003.18.08/WhatsApp%20Video%202026-11-04%20at%2020.16.16.mp4" controls muted playsinline preload="metadata"></video>
+        <figcaption>Video 1 — menyusuri selasar sampai gedung di depan</figcaption>
+      </figure>
+      <figure>
+        <video src="footage/WhatsApp%20Unknown%202026-11-05%20at%2003.18.08/WhatsApp%20Video%202026-11-04%20at%2020.16.18.mp4" controls muted playsinline preload="metadata"></video>
+        <figcaption>Video 2 — area parkir motor &amp; pagar kuning</figcaption>
+      </figure>
+      <figure>
+        <video src="footage/WhatsApp%20Unknown%202026-11-05%20at%2003.18.08/WhatsApp%20Video%202026-11-04%20at%2020.16.19.mp4" controls muted playsinline preload="metadata"></video>
+        <figcaption>Video 3 — taman &amp; lampu di samping selasar</figcaption>
+      </figure>
+    </div>
+  </section>
+</main>
 
-<script src="js/matriks.js"></script>
-<script src="js/geometri.js"></script>
-<script src="js/tekstur.js"></script>
-<script src="js/shader.js"></script>
-<script src="js/scene.js"></script>
+<script src="js/math3d.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

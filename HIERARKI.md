@@ -1,11 +1,12 @@
 # Hierarki Objek (Scene Graph) — Selasar ITS
 
 Dokumen ini menjelaskan susunan hierarki objek pada scene WebGL Tugas 2.
-Semua kode hierarki ada di `js/scene.js`, sedangkan perhitungan matriks dunia ada di `js/main.js` (`updateDunia`).
+Semua kode hierarki ada di `js/main.js` bagian 3 (`buildScene`), sedangkan perhitungan matriks dunia ada di bagian 4 (`updateDunia`).
+Ringkasan tree ini juga ditampilkan di halaman utama (bagian "Desain Tree Hubungan Antar Objek").
 
 ## 1. Konsep dasar
 
-Setiap objek adalah sebuah **Node** (`class Node` di `scene.js`). Node memiliki:
+Setiap objek adalah sebuah **Node** (`class Node` di `main.js`). Node memiliki:
 
 | Field      | Arti |
 |------------|------|
@@ -27,7 +28,7 @@ model = world × shape
 `shape` dipisah agar skala sebuah bagian tidak ikut meregangkan anaknya.
 Contoh: `Kolom` diskalakan menjadi batang tipis setinggi 2,6 m, tetapi `Pelat Dasar` (anaknya) tetap berukuran normal.
 
-Penelusuran pohon (rekursif, di `main.js`):
+Penelusuran pohon (rekursif, `updateDunia` di `main.js`):
 
 ```js
 function telusur(node, worldInduk) {
@@ -39,7 +40,7 @@ function telusur(node, worldInduk) {
 telusur(root, I);
 ```
 
-Fungsi pembantu matriks (di `matriks.js`):
+Fungsi pembantu matriks (di `math3d.js`):
 - `trs(tx,ty,tz, rx,ry,rz)` = T · Ry · Rx · Rz untuk `local`
 - `shapeM(sx,sy,sz, tx,ty,tz, rx,ry,rz)` = T · R · S untuk `shape`
 
@@ -219,7 +220,7 @@ Bentuk 3D selasar mengikuti video di `footage/WhatsApp Unknown 2026-11-05 at 03.
 - Persegi panjang tipis pada citra = **Selasar**. Bangunan lain = **Gedung**.
 - Sumbu dunia disejajarkan dengan selasar: −z = arah selasar (barat → timur, menuju Gedung ITS ROBOCON), +x = selatan (area parkir), −x = utara (Gedung IRIS).
 - Skala 0,1469 m/piksel, dipilih agar lantai selasar (56 m) tepat dari dinding Gedung Barat ke dinding Gedung ITS ROBOCON.
-- `peta(u, v)` di `scene.js` mengubah piksel citra → `[x, z]` dunia; `piksel(x, z)` kebalikannya.
+- `peta(u, v)` di `main.js` mengubah piksel citra → `[x, z]` dunia; `piksel(x, z)` kebalikannya.
 - `gedungPiksel(nama, [kiriAtas, kananAtas, kiriBawah], ...)` membuat gedung dari tiga sudut atapnya pada citra: lebar, kedalaman, posisi pusat, dan sudut putarnya dihitung otomatis.
 
 | Gedung | Sudut atap pada citra (piksel) |
@@ -242,9 +243,6 @@ Node dinamis (motor melaju, pejalan, pohon) tetap digambar satu per satu dengan 
 
 | File | Isi |
 |------|-----|
-| `js/matriks.js` | Pustaka matriks 4×4: translasi, rotasi, skala, `lookAt`, perspektif, invers, `trs`, `shapeM` |
-| `js/geometri.js` | Pembuat mesh: kotak, silinder, bola, torus, prisma, spandek bergelombang, pita jalan |
-| `js/tekstur.js` | 10 tekstur prosedural (Canvas 2D) |
-| `js/shader.js` | Shader GLSL: Blinn-Phong, point light, spotlight, shadow map, kabut, langit |
-| `js/scene.js` | **Hierarki objek (scene graph) & fungsi animasi** |
-| `js/main.js` | Penelusuran pohon, render loop, shadow pass, siklus siang–malam, kamera, panel kontrol |
+| `js/math3d.js` | 1. Pustaka matriks 4×4 & vektor: translasi, rotasi, skala, `lookAt`, perspektif, invers, `trs`, `shapeM`<br>2. Pembuat mesh: kotak, silinder, bola, torus, prisma, spandek bergelombang, pita jalan |
+| `js/main.js` | 1. Tekstur prosedural (Canvas 2D)<br>2. Shader GLSL: Blinn-Phong, point light, spotlight, shadow map, kabut, langit<br>3. **Hierarki objek (scene graph) & fungsi animasi**<br>4. Penelusuran pohon, render loop, shadow pass, siklus siang–malam, kamera, panel kontrol<br>5. Halaman: tombol layar penuh / perkecil |
+| `index.html` | Tampilan 3D, anggota kelompok, desain tree, referensi foto & video |
